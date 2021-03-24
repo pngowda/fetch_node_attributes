@@ -21,7 +21,12 @@ Vagrant.configure(2) do |config|
   end
 
   # Shell Provision
-    config.vm.provision :shell, inline: "sudo apt-get update"
+  config.vm.provision :shell, inline: "sudo apt-get update"
+	
+  # Shell Provision: 
+  # This is a work around to get the exact host disk utilization details inside the container. 
+  # otherwise the mount mount of a partition will differ.
+  config.vm.provision :shell, inline: "df -h | grep '^/dev' > /vagrant/host_disk_info.txt"
   
   # Docker Provision
   config.vm.provision "docker" do |docker|

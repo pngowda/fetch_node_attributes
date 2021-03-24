@@ -11,6 +11,7 @@ Requirements:
 
 import json
 import logging
+import os
 import platform
 import psutil
 
@@ -125,9 +126,30 @@ def get_disk_info():
     :return: None
     """
     logging.info("Partitions and Usage:")
-    data["DISK_PARTITIONS"] = []
+    data["HOST_DISK_PARTITIONS"] = []
+    if os.path.isfile("host_disk_info.txt"):
+        with open("host_disk_info.txt") as fp:
+            for line in fp:
+                partitions = line.split()
+                logging.info("Device: %s", partitions[0])
+                logging.info("  Total Size: %s", partitions[1])
+                logging.info("  Used: %s", partitions[2])
+                logging.info("  Free: %s", partitions[3])
+                logging.info("  Percentage: %s", partitions[4])
+                logging.info("  Mount Point: %s", partitions[5])
+                data["HOST_DISK_PARTITIONS"].append(
+                    {
+                        partitions[0]: {
+                            "Total Size": partitions[1],
+                            "Used": partitions[2],
+                            "Free": partitions[3],
+                            "Percentage": partitions[4],
+                            "Mount Point": partitions[5],
+                        }
+                    }
+                )
+        return
     partitions = psutil.disk_partitions()
-
     for partition in partitions:
         try:
             logging.info("Device: %s", partition.device)
@@ -139,14 +161,15 @@ def get_disk_info():
         logging.info("  Used: %s", get_size(partition_usage.used))
         logging.info("  Free: %s", get_size(partition_usage.free))
         logging.info("  Percentage: %s", partition_usage.percent)
-        data["DISK_PARTITIONS"].append(
+        logging.info("  Mount Point: %s", partition.mountpoint)
+        data["HOST_DISK_PARTITIONS"].append(
             {
                 partition.device: {
-                    "Mount Point": partition.mountpoint,
                     "Total Size": get_size(partition_usage.total),
                     "Used": get_size(partition_usage.used),
                     "Free": get_size(partition_usage.free),
                     "Percentage": partition_usage.percent,
+                    "Mount Point": partition.mountpoint,
                 }
             }
         )
